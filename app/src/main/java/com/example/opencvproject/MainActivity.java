@@ -1,5 +1,6 @@
 package com.example.opencvproject;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -27,7 +28,11 @@ import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 import android.view.SurfaceView;
 
-public class MainActivity extends Activity implements OnTouchListener, CvCameraViewListener2 {
+import com.example.opencvproject.detector.Detector;
+import com.example.opencvproject.detector.ReferenceDetector;
+
+public class MainActivity extends Activity implements CvCameraViewListener2 //OnTouchListener,
+{
     private static final String  TAG              = "OCVSample::Activity";
 
     private boolean              mIsColorSelected = false;
@@ -38,6 +43,7 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
     private Mat                  mSpectrum;
     private Size                 SPECTRUM_SIZE;
     private Scalar               CONTOUR_COLOR;
+    private Detector[]           detector;
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -49,7 +55,21 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(MainActivity.this);
+                    //mOpenCvCameraView.setOnTouchListener(MainActivity.this);
+                    final Detector markerDetector;
+                    try {
+                        markerDetector = new ReferenceDetector(
+                                MainActivity.this,
+                                R.drawable.marker);
+                    } catch (IOException e) {
+                        Log.e(TAG, "Failed to load drawable: " +
+                                "marker");
+                        e.printStackTrace();
+                        break;
+                    }
+
+                    detector = new Detector[] {markerDetector};
+
                 } break;
                 default:
                 {
@@ -119,6 +139,7 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
         mRgba.release();
     }
 
+    /*
     public boolean onTouch(View v, MotionEvent event) {
         int cols = mRgba.cols();
         int rows = mRgba.rows();
@@ -168,10 +189,15 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
 
         return false; // don't need subsequent touch events
     }
-
+*/
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
 
+        if (detector != null) {
+            detector[0].apply(
+                    mRgba, mRgba);
+        }
+/*
         if (mIsColorSelected) {
             mDetector.process(mRgba);
             List<MatOfPoint> contours = mDetector.getContours();
@@ -184,6 +210,7 @@ public class MainActivity extends Activity implements OnTouchListener, CvCameraV
             Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
             mSpectrum.copyTo(spectrumLabel);
         }
+        */
 
         return mRgba;
     }
