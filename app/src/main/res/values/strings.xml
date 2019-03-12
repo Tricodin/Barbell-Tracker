@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">OpenCVProject</string>
-    <string name="action_settings">Settings</string>
+    <string name="Launch">Launch Tracker</string>
+    <string name="openTracker">Launch Tracker</string>
+    <string name="openVideo">Open Video</string>
+    <string name="recordVideo">RecordVideo</string>
 </resources>
