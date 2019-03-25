@@ -35,12 +35,16 @@ public class ReferenceDetector implements Detector {
 // channel layout in the image.
     private final Mat mReferenceCorners =
             new Mat(4, 1, CvType.CV_32FC2);
+    private final Mat mReferenceCenter = new Mat(1, 1,
+            CvType.CV_32FC2);
     private final MatOfKeyPoint mSceneKeypoints =
             new MatOfKeyPoint();
     private final Mat mSceneDescriptors = new Mat();
     private final Mat mCandidateSceneCorners =
             new Mat(4, 1, CvType.CV_32FC2);
     private final Mat mSceneCorners = new Mat(4, 1,
+            CvType.CV_32FC2);
+    private final Mat mSceneCenter = new Mat(1, 1,
             CvType.CV_32FC2);
     private final MatOfPoint mIntSceneCorners = new MatOfPoint();
     private final Mat mGraySrc = new Mat();
@@ -51,6 +55,9 @@ public class ReferenceDetector implements Detector {
             DescriptorMatcher.create(
                     DescriptorMatcher.BRUTEFORCE_HAMMING);
     private final Scalar mLineColor = new Scalar(0, 255, 0);
+    private final Scalar trackLineColor = new Scalar(255,0,0);
+
+    private ArrayList<Point> listOfPoints;
 
     public ReferenceDetector(final Context context,
                              final int referenceImageResourceID) throws IOException {
@@ -71,10 +78,13 @@ public class ReferenceDetector implements Detector {
                         referenceImageGray.rows()});
         mReferenceCorners.put(3, 0,
                 new double[] {0.0, referenceImageGray.rows()});
+        mReferenceCenter.put(0, 0,
+                new double[] {referenceImageGray.cols()/2, referenceImageGray.rows()/2});
         orb.detect(referenceImageGray,
                 mReferenceKeypoints);
         orb.compute(referenceImageGray,
                 mReferenceKeypoints, mReferenceDescriptors);
+        listOfPoints = new ArrayList<Point>();
     }
 
     @Override
@@ -115,7 +125,7 @@ public class ReferenceDetector implements Detector {
 // based on testing. The unit is not related to pixel
 // distances; it is related to the number of failed tests
 // for similarity between the matched descriptors.
-        if (minDist > 50.0) {
+        if (minDist > 40.0) {
 // The target is completely lost.
 // Discard any previously found corners.
             mSceneCorners.create(0, 0, mSceneCorners.type());
@@ -157,6 +167,9 @@ public class ReferenceDetector implements Detector {
                 CvType.CV_32S);
         if (Imgproc.isContourConvex(mIntSceneCorners)) {
             mCandidateSceneCorners.copyTo(mSceneCorners);
+            Core.perspectiveTransform(mReferenceCenter,
+                    mSceneCenter, homography);
+            listOfPoints.add(new Point (mSceneCenter.get(0,0)));
         }
     }
 
@@ -176,6 +189,15 @@ public class ReferenceDetector implements Detector {
                 new Point(mSceneCorners.get(3, 0)), mLineColor, 4);
         Imgproc.line(dst, new Point(mSceneCorners.get(3,0)),
                 new Point(mSceneCorners.get(0, 0)), mLineColor, 4);
+
+        //Places a circle around the "centre"
+//        if (listOfPoints.size() > 0)
+//            Imgproc.circle(dst,listOfPoints.get(listOfPoints.size()-1),5,trackLineColor,4);
+
+        //Draws the center travel path
+        for (int i = 1; i < listOfPoints.size(); i++){
+            Imgproc.line(dst, listOfPoints.get(i-1),listOfPoints.get(i),trackLineColor,4);
+        }
     }
 }
 
