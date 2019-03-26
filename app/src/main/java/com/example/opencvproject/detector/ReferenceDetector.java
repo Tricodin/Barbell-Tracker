@@ -125,7 +125,7 @@ public class ReferenceDetector implements Detector {
 // based on testing. The unit is not related to pixel
 // distances; it is related to the number of failed tests
 // for similarity between the matched descriptors.
-        if (minDist > 40.0) {
+        if (minDist > 35.0) {
 // The target is completely lost.
 // Discard any previously found corners.
             mSceneCorners.create(0, 0, mSceneCorners.type());
@@ -198,6 +198,10 @@ public class ReferenceDetector implements Detector {
         for (int i = 1; i < listOfPoints.size(); i++){
             Imgproc.line(dst, listOfPoints.get(i-1),listOfPoints.get(i),trackLineColor,4);
         }
+    }
+
+    public ArrayList<Point> getPointList(){
+        return listOfPoints;
     }
 }
 

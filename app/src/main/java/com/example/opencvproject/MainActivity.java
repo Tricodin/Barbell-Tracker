@@ -1,5 +1,6 @@
 package com.example.opencvproject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -16,10 +17,16 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,6 +34,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import com.example.opencvproject.detector.Detector;
 import com.example.opencvproject.detector.ReferenceDetector;
@@ -46,6 +54,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
     private Detector[]           detector;
 
     private CameraBridgeViewBase mOpenCvCameraView;
+    private boolean takePhoto;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -139,57 +148,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         mRgba.release();
     }
 
-    /*
-    public boolean onTouch(View v, MotionEvent event) {
-        int cols = mRgba.cols();
-        int rows = mRgba.rows();
-
-        int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
-        int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
-
-        int x = (int)event.getX() - xOffset;
-        int y = (int)event.getY() - yOffset;
-
-        Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
-
-        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
-
-        Rect touchedRect = new Rect();
-
-        touchedRect.x = (x>4) ? x-4 : 0;
-        touchedRect.y = (y>4) ? y-4 : 0;
-
-        touchedRect.width = (x+4 < cols) ? x + 4 - touchedRect.x : cols - touchedRect.x;
-        touchedRect.height = (y+4 < rows) ? y + 4 - touchedRect.y : rows - touchedRect.y;
-
-        Mat touchedRegionRgba = mRgba.submat(touchedRect);
-
-        Mat touchedRegionHsv = new Mat();
-        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
-
-        // Calculate average color of touched region
-        mBlobColorHsv = Core.sumElems(touchedRegionHsv);
-        int pointCount = touchedRect.width*touchedRect.height;
-        for (int i = 0; i < mBlobColorHsv.val.length; i++)
-            mBlobColorHsv.val[i] /= pointCount;
-
-        mBlobColorRgba = converScalarHsv2Rgba(mBlobColorHsv);
-
-        Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
-                ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
-
-        mDetector.setHsvColor(mBlobColorHsv);
-
-        Imgproc.resize(mDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE, 0, 0, Imgproc.INTER_LINEAR_EXACT);
-
-        mIsColorSelected = true;
-
-        touchedRegionRgba.release();
-        touchedRegionHsv.release();
-
-        return false; // don't need subsequent touch events
-    }
-*/
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
 
@@ -197,29 +155,74 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
             detector[0].apply(
                     mRgba, mRgba);
         }
-/*
-        if (mIsColorSelected) {
-            mDetector.process(mRgba);
-            List<MatOfPoint> contours = mDetector.getContours();
-            Log.e(TAG, "Contours count: " + contours.size());
-            Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
 
-            Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-            colorLabel.setTo(mBlobColorRgba);
-
-            Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
-            mSpectrum.copyTo(spectrumLabel);
+        if (takePhoto){
+            takePhoto = false;
+            takePhoto(mRgba);
         }
-        */
 
         return mRgba;
     }
 
-    private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
-        Mat pointMatRgba = new Mat();
-        Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
-        Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL, 4);
+    public void onButtonClick (View v){
+        takePhoto = true;
+    }
 
-        return new Scalar(pointMatRgba.get(0, 0));
+    private void takePhoto(final Mat rgba) {
+// Determine the path and metadata for the photo.
+        final long currentTimeMillis = System.currentTimeMillis();
+        final String appName = getString(R.string.app_name);
+        final String galleryPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+        final String albumPath = galleryPath + "/" + appName;
+        final String photoPath = albumPath + "/" +
+                currentTimeMillis + ".png";
+        final ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DATA, photoPath);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+        values.put(MediaStore.Images.Media.TITLE, appName);
+        values.put(MediaStore.Images.Media.DESCRIPTION, appName);
+        values.put(MediaStore.Images.Media.DATE_TAKEN, currentTimeMillis);
+    // Ensure that the album directory exists.
+        File album = new File(albumPath);
+        if (!album.isDirectory() && !album.mkdirs()) {
+            Log.e(TAG, "Failed to create album directory at " +
+                    albumPath);
+            onTakePhotoFailed();
+            return;
+        }
+        // Try to create the photo.
+        Imgproc.cvtColor(rgba, mRgba, Imgproc.COLOR_RGBA2BGR, 3);
+        if (!Imgcodecs.imwrite(photoPath, rgba)) {
+            Log.e(TAG, "Failed to save photo to " + photoPath);
+            onTakePhotoFailed();
+        }
+        Log.d(TAG, "Photo saved successfully to " + photoPath);
+        // Try to insert the photo into the MediaStore.
+        Uri uri;
+        try {
+            uri = getContentResolver().insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        } catch (final Exception e) {
+            Log.e(TAG, "Failed to insert photo into MediaStore");
+            e.printStackTrace();
+            // Since the insertion failed, delete the photo.
+            File photo = new File(photoPath);
+            if (!photo.delete()) {
+                Log.e(TAG, "Failed to delete non-inserted photo");
+            }
+            onTakePhotoFailed();
+            return;
+        }
+    }
+    private void onTakePhotoFailed() {
+    // Show an error message.
+        final String errorMessage ="Photo failed";
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, errorMessage,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
