@@ -2,6 +2,10 @@
     <string name="app_name">OpenCVProject</string>
     <string name="Launch">Launch Tracker</string>
     <string name="openTracker">Launch Tracker</string>
-    <string name="openVideo">Open Video</string>
     <string name="recordVideo">RecordVideo</string>
+    <string name="title_activity_lift__history">Lift_History</string>
+    <string name="RecordVideo">Record Video</string>
+    <string name="openVideo">Open Video</string>
+    <string name="history">History</string>
+    <string name="viewhist">View History</string>
 </resources>

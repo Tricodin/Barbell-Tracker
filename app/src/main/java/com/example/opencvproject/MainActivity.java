@@ -2,8 +2,12 @@ package com.example.opencvproject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
+import org.apache.commons.math3.analysis.function.Pow;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
@@ -12,6 +16,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -36,6 +41,7 @@ import android.view.View.OnTouchListener;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
+import com.example.opencvproject.detector.DatabaseHelper;
 import com.example.opencvproject.detector.Detector;
 import com.example.opencvproject.detector.ReferenceDetector;
 
@@ -52,6 +58,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
     private Size                 SPECTRUM_SIZE;
     private Scalar               CONTOUR_COLOR;
     private Detector[]           detector;
+    private DatabaseHelper       mDatabaseHelper;
+    private Uri                  imageURI;
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean takePhoto;
@@ -105,6 +113,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         mOpenCvCameraView = findViewById(R.id.color_blob_detection_activity_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        mDatabaseHelper = new DatabaseHelper(this);
     }
 
     @Override
@@ -166,6 +176,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
 
     public void onButtonClick (View v){
         takePhoto = true;
+        //logData();
+
+
     }
 
     private void takePhoto(final Mat rgba) {
@@ -182,6 +195,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         values.put(MediaStore.Images.Media.TITLE, appName);
         values.put(MediaStore.Images.Media.DESCRIPTION, appName);
         values.put(MediaStore.Images.Media.DATE_TAKEN, currentTimeMillis);
+
+
+
     // Ensure that the album directory exists.
         File album = new File(albumPath);
         if (!album.isDirectory() && !album.mkdirs()) {
@@ -202,11 +218,15 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         try {
             uri = getContentResolver().insert(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            imageURI = uri;
+            logData();
+
         } catch (final Exception e) {
             Log.e(TAG, "Failed to insert photo into MediaStore");
             e.printStackTrace();
             // Since the insertion failed, delete the photo.
             File photo = new File(photoPath);
+
             if (!photo.delete()) {
                 Log.e(TAG, "Failed to delete non-inserted photo");
             }
@@ -225,4 +245,47 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
             }
         });
     }
+
+    private void logData()
+    {
+        double Variance = calculateVariance(detector);
+        double STDDev = java.lang.Math.sqrt(Variance);
+        int devInt = (int)STDDev;
+
+        String DevString = Integer.toString(devInt);
+
+        String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+
+        String URIString = imageURI.toString();
+
+        mDatabaseHelper.addData(date, DevString, URIString);
+    }
+
+
+    private double calculateVariance(Detector[] rDetector)
+    {
+        ArrayList<Point> points = rDetector[0].getPointList();
+        double[] xPoints =  new double[points.size()];
+        double sum = 0;
+        double mean;
+        double currVar = 0;
+
+        for(int i = 0; i < points.size(); i++ )
+        {
+            xPoints[i] = points.get(i).x;
+            sum = sum + xPoints[i];
+        }
+
+        mean = sum / (points.size());
+
+        for(int j = 0; j<xPoints.length;j++)
+        {
+            currVar = currVar + ((xPoints[j] - mean) * (xPoints[j] - mean));
+        }
+
+        return currVar / (xPoints.length - 1);
+
+
+    }
 }
+

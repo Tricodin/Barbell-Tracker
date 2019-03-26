@@ -27,6 +27,11 @@ public class Start extends AppCompatActivity {
         pickVideo();
     }
 
+    public void openHistory(View v)
+    {
+        Intent intent = new Intent(this, Lift_History.class);
+        startActivity(intent);
+    }
 
     void pickVideo() {
         Intent pickVideoIntent = new Intent(Intent.ACTION_GET_CONTENT);
