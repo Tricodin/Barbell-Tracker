@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">OpenCVProject</string>
+    <string name="app_name">Barbell Tracker</string>
     <string name="Launch">Launch Tracker</string>
     <string name="openTracker">Launch Tracker</string>
     <string name="recordVideo">RecordVideo</string>
