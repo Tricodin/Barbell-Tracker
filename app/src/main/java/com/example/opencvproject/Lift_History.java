@@ -92,10 +92,15 @@ public class Lift_History extends AppCompatActivity {
                                        @Override
                                        public void onClick(View view)
                                        {
-                                            Intent intent = new Intent();
-                                            intent.setAction(Intent.ACTION_VIEW);
-                                            intent.setDataAndType(uri, "image/*");
-                                            startActivity(intent);
+//                                            Intent intent = new Intent();
+//                                            intent.setAction(Intent.ACTION_VIEW);
+//                                            intent.setDataAndType(uri, "image/*");
+//                                            startActivity(intent);
+                                           final Intent intent = new Intent(Lift_History.this,ImageReview.class);
+                                           intent.putExtra(ImageReview.EXTRA_PHOTO_URI, uri);
+//                                           intent.putExtra(ImageReview.EXTRA_PHOTO_DATA_PATH,
+//                                                   photoPath);
+                                           startActivity(intent);
                                        }
                                    }
             );

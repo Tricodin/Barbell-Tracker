@@ -233,6 +233,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
             onTakePhotoFailed();
             return;
         }
+        final Intent intent = new Intent(this, ImageReview.class);
+        intent.putExtra(ImageReview.EXTRA_PHOTO_URI, uri);
+        intent.putExtra(ImageReview.EXTRA_PHOTO_DATA_PATH,
+                photoPath);
+        startActivity(intent);
     }
     private void onTakePhotoFailed() {
     // Show an error message.
