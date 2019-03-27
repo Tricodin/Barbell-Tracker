@@ -58,6 +58,7 @@ public class ReferenceDetector implements Detector {
     private final Scalar trackLineColor = new Scalar(255,0,0);
 
     private ArrayList<Point> listOfPoints;
+    private boolean track;
 
     public ReferenceDetector(final Context context,
                              final int referenceImageResourceID) throws IOException {
@@ -95,6 +96,7 @@ public class ReferenceDetector implements Detector {
                 mSceneDescriptors);
         mDescriptorMatcher.match(mSceneDescriptors,
                 mReferenceDescriptors, mMatches);
+        this.track = track;
         findMarkerCorners();
         draw(src, dst);
     }
@@ -169,7 +171,8 @@ public class ReferenceDetector implements Detector {
             mCandidateSceneCorners.copyTo(mSceneCorners);
             Core.perspectiveTransform(mReferenceCenter,
                     mSceneCenter, homography);
-            listOfPoints.add(new Point (mSceneCenter.get(0,0)));
+            if (track)
+                listOfPoints.add(new Point (mSceneCenter.get(0,0)));
         }
     }
 
@@ -190,14 +193,22 @@ public class ReferenceDetector implements Detector {
         Imgproc.line(dst, new Point(mSceneCorners.get(3,0)),
                 new Point(mSceneCorners.get(0, 0)), mLineColor, 4);
 
-        //Places a circle around the "centre"
-//        if (listOfPoints.size() > 0)
-//            Imgproc.circle(dst,listOfPoints.get(listOfPoints.size()-1),5,trackLineColor,4);
-
-        //Draws the center travel path
-        for (int i = 1; i < listOfPoints.size(); i++){
-            Imgproc.line(dst, listOfPoints.get(i-1),listOfPoints.get(i),trackLineColor,4);
+        if (!track) {
+            //Places a circle around the "centre"
+                Imgproc.circle(dst, new Point (mSceneCenter.get(0,0)), 5, trackLineColor, 4);
         }
+        else{
+            //Draws the center travel path
+            for (int i = 1; i < listOfPoints.size(); i++){
+                Imgproc.line(dst, listOfPoints.get(i-1),listOfPoints.get(i),trackLineColor,4);
+            }
+        }
+
+    }
+
+    public boolean setTracking(boolean tracking){
+        track = tracking;
+        return track;
     }
 
     public ArrayList<Point> getPointList(){

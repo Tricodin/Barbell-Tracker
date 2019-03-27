@@ -8,11 +8,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="wrap_content"
+    <ToggleButton
+        android:id="@+id/toggleButton2"
+        style="@android:style/Widget.Material.Light.Button.Toggle"
+        android:layout_width="147dp"
         android:layout_height="wrap_content"
-        android:onClick="onButtonClick"
-        android:text="Save" />
+        android:checked="false"
+        android:text="ToggleButton"
+        android:textOff="Track"
+        android:textOn="Stop Tracking" />
 
 </FrameLayout>

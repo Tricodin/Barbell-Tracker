@@ -39,7 +39,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 import android.view.SurfaceView;
+import android.widget.CompoundButton;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.example.opencvproject.detector.DatabaseHelper;
 import com.example.opencvproject.detector.Detector;
@@ -63,6 +65,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean takePhoto;
+    private boolean trackPhoto;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -115,6 +118,17 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         mOpenCvCameraView.setCvCameraViewListener(this);
 
         mDatabaseHelper = new DatabaseHelper(this);
+
+        ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton2);
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    trackPhoto = detector[0].setTracking(true);
+                } else {
+                    takePhoto = true;
+                }
+            }
+        });
     }
 
     @Override
@@ -162,24 +176,27 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         mRgba = inputFrame.rgba();
 
         if (detector != null) {
-            detector[0].apply(
-                    mRgba, mRgba);
+            detector[0].apply(mRgba, mRgba);
         }
 
         if (takePhoto){
             takePhoto = false;
             takePhoto(mRgba);
+            trackPhoto = detector[0].setTracking(false);
         }
 
         return mRgba;
     }
 
-    public void onButtonClick (View v){
-        takePhoto = true;
-        //logData();
 
-
-    }
+//    public void onButtonClick (View v){
+//        //takePhoto = true;
+//        if (trackPhoto){
+//            takePhoto = true;
+//        }
+//        else
+//            trackPhoto = detector[0].toggleTracking();
+//    }
 
     private void takePhoto(final Mat rgba) {
 // Determine the path and metadata for the photo.
@@ -233,6 +250,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
             onTakePhotoFailed();
             return;
         }
+
+        takePhoto = false;
+
         final Intent intent = new Intent(this, ImageReview.class);
         intent.putExtra(ImageReview.EXTRA_PHOTO_URI, uri);
         intent.putExtra(ImageReview.EXTRA_PHOTO_DATA_PATH,
