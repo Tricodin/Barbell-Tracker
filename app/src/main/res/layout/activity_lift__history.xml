@@ -21,9 +21,18 @@
     </android.support.design.widget.AppBarLayout>
 
     <include
+        android:id="@+id/include"
         layout="@layout/content_lift__history"
         android:layout_height="538dp" />
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="saveCSV"
+        android:text="Export as CSV"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="bottom|center" />
 
 
 </android.support.design.widget.CoordinatorLayout>
