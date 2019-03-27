@@ -8,4 +8,7 @@
     <string name="openVideo">Open Video</string>
     <string name="history">History</string>
     <string name="viewhist">View History</string>
+    <string name="date">Date</string>
+    <string name="Deviation">Deviation</string>
+    <string name="viewImage">View Image</string>
 </resources>

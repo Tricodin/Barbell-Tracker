@@ -8,16 +8,45 @@
     tools:context=".Lift_History"
     tools:showIn="@layout/activity_lift__history">
 
-    <Button
-        android:id="@+id/button6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="184dp"
-        android:layout_marginBottom="443dp"
-        android:onClick="showData"
-        android:text="@string/viewhist"
+    <TableLayout
+        android:id="@+id/historyTable"
+        android:layout_width="395dp"
+        android:layout_height="624dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="43dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:password="false"
+                android:text="@string/date"
+                android:textIsSelectable="false"
+                android:textStyle="normal|bold" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/Deviation" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/viewImage" />
+        </TableRow>
+    </TableLayout>
+
 </android.support.constraint.ConstraintLayout>

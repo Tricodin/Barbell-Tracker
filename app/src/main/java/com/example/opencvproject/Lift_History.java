@@ -1,6 +1,8 @@
 package com.example.opencvproject;
 
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,6 +10,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.opencvproject.detector.DatabaseHelper;
@@ -15,11 +22,15 @@ import com.example.opencvproject.detector.DatabaseHelper;
 public class Lift_History extends AppCompatActivity {
 
     DatabaseHelper mDatabaseHelper = new DatabaseHelper(this);
+       private TableLayout table;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lift__history);
+        table = findViewById(R.id.historyTable);
+        createTable();
 
 
     }
@@ -56,4 +67,45 @@ public class Lift_History extends AppCompatActivity {
         Toast.makeText(this,message, Toast.LENGTH_SHORT).show();
     }
 
+
+    private void createTable()
+    {
+        final Cursor res = mDatabaseHelper.getData();
+
+        while (res.moveToNext())
+        {
+            TableRow tr = new TableRow(this);
+
+            TextView tview1 = new TextView(this);
+            TextView tview2 = new TextView(this);
+            Button b1 = new Button(this);
+
+            tview1.setText(res.getString(1));
+            tview2.setText(res.getString(2));
+            b1.setText("View Image");
+
+            final String uriString = res.getString(3);
+            final Uri uri = Uri.parse(uriString);
+
+            b1.setOnClickListener( new View.OnClickListener()
+                                   {
+                                       @Override
+                                       public void onClick(View view)
+                                       {
+                                            Intent intent = new Intent();
+                                            intent.setAction(Intent.ACTION_VIEW);
+                                            intent.setDataAndType(uri, "image/*");
+                                            startActivity(intent);
+                                       }
+                                   }
+            );
+
+            tr.addView(tview1);
+            tr.addView(tview2);
+            tr.addView(b1);
+
+            table.addView(tr);
+        }
+
+    }
 }
