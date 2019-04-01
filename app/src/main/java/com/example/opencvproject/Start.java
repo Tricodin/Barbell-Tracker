@@ -16,19 +16,17 @@ public class Start extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
     }
-    public void launchTracker(View v)
-    {
+
+    public void launchTracker(View v) {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
 
-    public void buttonOnVideoClick(View v)
-    {
+    public void buttonOnVideoClick(View v) {
         pickVideo();
     }
 
-    public void openHistory(View v)
-    {
+    public void openHistory(View v) {
         Intent intent = new Intent(this, Lift_History.class);
         startActivity(intent);
     }
@@ -53,8 +51,7 @@ public class Start extends AppCompatActivity {
         }
     }
 
-    public void recordVideoClick(View v)
-    {
+    public void recordVideoClick(View v) {
         dispatchTakeVideoIntent();
     }
 }

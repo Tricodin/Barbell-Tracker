@@ -49,52 +49,40 @@ import com.example.opencvproject.detector.ReferenceDetector;
 
 public class MainActivity extends Activity implements CvCameraViewListener2 //OnTouchListener,
 {
-    private static final String  TAG              = "OCVSample::Activity";
+    private static final String TAG = "OCVSample::Activity";
 
-    private boolean              mIsColorSelected = false;
-    private Mat                  mRgba;
-    private Scalar               mBlobColorRgba;
-    private Scalar               mBlobColorHsv;
-    private ColorBlobDetector    mDetector;
-    private Mat                  mSpectrum;
-    private Size                 SPECTRUM_SIZE;
-    private Scalar               CONTOUR_COLOR;
-    private Detector[]           detector;
-    private DatabaseHelper       mDatabaseHelper;
-    private Uri                  imageURI;
+    private Mat mRgba;
+    private Detector[] detector;
+    private DatabaseHelper mDatabaseHelper;
+    private Uri imageURI;
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean takePhoto;
     private boolean trackPhoto;
 
-    private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
+    //Method of what must be done once the OpenCV library has been loaded
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
+                case LoaderCallbackInterface.SUCCESS: {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    //mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                     final Detector markerDetector;
                     try {
-                        markerDetector = new ReferenceDetector(
-                                MainActivity.this,
-                                R.drawable.marker);
+                        markerDetector = new ReferenceDetector(MainActivity.this, R.drawable.marker);
                     } catch (IOException e) {
-                        Log.e(TAG, "Failed to load drawable: " +
-                                "marker");
+                        Log.e(TAG, "Failed to load drawable: " + "marker");
                         e.printStackTrace();
                         break;
                     }
-
-                    detector = new Detector[] {markerDetector};
-
-                } break;
-                default:
-                {
+                    detector = new Detector[]{markerDetector};
+                }
+                break;
+                default: {
                     super.onManagerConnected(status);
-                } break;
+                }
+                break;
             }
         }
     };
@@ -103,7 +91,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         Log.i(TAG, "Instantiated new " + this.getClass());
     }
 
-    /** Called when the activity is first created. */
+    //Called when the activity is first created.
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "called onCreate");
@@ -119,6 +108,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
 
         mDatabaseHelper = new DatabaseHelper(this);
 
+        //Toggle button listener
         ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton2);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -132,22 +122,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            Log.d(TAG, "Internal OpenCV library not found");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
         } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            Log.d(TAG, "OpenCV library found");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
@@ -160,26 +148,23 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
 
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
-        mDetector = new ColorBlobDetector();
-        mSpectrum = new Mat();
-        mBlobColorRgba = new Scalar(255);
-        mBlobColorHsv = new Scalar(255);
-        SPECTRUM_SIZE = new Size(200, 64);
-        CONTOUR_COLOR = new Scalar(255,0,0,255);
     }
 
     public void onCameraViewStopped() {
         mRgba.release();
     }
 
+    //Live processing of camera view
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
 
+        //Find the marker and adds tracking box
         if (detector != null) {
             detector[0].apply(mRgba, mRgba);
         }
 
-        if (takePhoto){
+        //Listens for photo taking signal
+        if (takePhoto) {
             takePhoto = false;
             takePhoto(mRgba);
             trackPhoto = detector[0].setTracking(false);
@@ -188,25 +173,17 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         return mRgba;
     }
 
-
-//    public void onButtonClick (View v){
-//        //takePhoto = true;
-//        if (trackPhoto){
-//            takePhoto = true;
-//        }
-//        else
-//            trackPhoto = detector[0].toggleTracking();
-//    }
-
+    //Photo taking method
     private void takePhoto(final Mat rgba) {
-// Determine the path and metadata for the photo.
+        // Determine the path and metadata for the photo.
         final long currentTimeMillis = System.currentTimeMillis();
         final String appName = getString(R.string.app_name);
         final String galleryPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
         final String albumPath = galleryPath + "/" + appName;
-        final String photoPath = albumPath + "/" +
-                currentTimeMillis + ".png";
+        final String photoPath = albumPath + "/" + currentTimeMillis + ".png";
         final ContentValues values = new ContentValues();
+
+        //Tells the android MediaStore the file exists
         values.put(MediaStore.MediaColumns.DATA, photoPath);
         values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
         values.put(MediaStore.Images.Media.TITLE, appName);
@@ -214,12 +191,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         values.put(MediaStore.Images.Media.DATE_TAKEN, currentTimeMillis);
 
 
-
-    // Ensure that the album directory exists.
+        // Ensure that the album directory exists.
         File album = new File(albumPath);
         if (!album.isDirectory() && !album.mkdirs()) {
-            Log.e(TAG, "Failed to create album directory at " +
-                    albumPath);
+            Log.e(TAG, "Failed to create album directory at " + albumPath);
             onTakePhotoFailed();
             return;
         }
@@ -233,12 +208,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
         // Try to insert the photo into the MediaStore.
         Uri uri;
         try {
-            uri = getContentResolver().insert(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             imageURI = uri;
             logData();
 
-        } catch (final Exception e) {
+        }
+        catch (final Exception e) {
             Log.e(TAG, "Failed to insert photo into MediaStore");
             e.printStackTrace();
             // Since the insertion failed, delete the photo.
@@ -253,29 +228,28 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
 
         takePhoto = false;
 
+        //View the photo by passing image URI to ImageReview Class
         final Intent intent = new Intent(this, ImageReview.class);
         intent.putExtra(ImageReview.EXTRA_PHOTO_URI, uri);
-        intent.putExtra(ImageReview.EXTRA_PHOTO_DATA_PATH,
-                photoPath);
+        intent.putExtra(ImageReview.EXTRA_PHOTO_DATA_PATH, photoPath);
         startActivity(intent);
     }
+
     private void onTakePhotoFailed() {
-    // Show an error message.
-        final String errorMessage ="Photo failed";
+        // Show an error message.
+        final String errorMessage = "Photo failed";
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(MainActivity.this, errorMessage,
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void logData()
-    {
+    private void logData() {
         double Variance = calculateVariance(detector);
         double STDDev = java.lang.Math.sqrt(Variance);
-        int devInt = (int)STDDev;
+        int devInt = (int) STDDev;
 
         String DevString = Integer.toString(devInt);
 
@@ -287,24 +261,21 @@ public class MainActivity extends Activity implements CvCameraViewListener2 //On
     }
 
 
-    private double calculateVariance(Detector[] rDetector)
-    {
+    private double calculateVariance(Detector[] rDetector) {
         ArrayList<Point> points = rDetector[0].getPointList();
-        double[] xPoints =  new double[points.size()];
+        double[] xPoints = new double[points.size()];
         double sum = 0;
         double mean;
         double currVar = 0;
 
-        for(int i = 0; i < points.size(); i++ )
-        {
+        for (int i = 0; i < points.size(); i++) {
             xPoints[i] = points.get(i).x;
             sum = sum + xPoints[i];
         }
 
         mean = sum / (points.size());
 
-        for(int j = 0; j<xPoints.length;j++)
-        {
+        for (int j = 0; j < xPoints.length; j++) {
             currVar = currVar + ((xPoints[j] - mean) * (xPoints[j] - mean));
         }
 

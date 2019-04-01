@@ -21,9 +21,6 @@ import android.widget.Toast;
 import android.content.Context;
 
 
-
-
-
 import com.example.opencvproject.detector.DatabaseHelper;
 
 import java.io.File;
@@ -36,9 +33,8 @@ import java.util.Date;
 public class Lift_History extends AppCompatActivity {
 
 
-
     DatabaseHelper mDatabaseHelper = new DatabaseHelper(this);
-       private TableLayout table;
+    private TableLayout table;
 
 
     @Override
@@ -52,26 +48,23 @@ public class Lift_History extends AppCompatActivity {
     }
 
 
-
-    public void showMessage(String title, String Message){
+    public void showMessage(String title, String Message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
         builder.setTitle(title);
         builder.setMessage(Message);
         builder.show();
     }
-    private void toastMessage(String message)
-    {
-        Toast.makeText(this,message, Toast.LENGTH_SHORT).show();
+
+    private void toastMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
 
-    private void createTable()
-    {
+    private void createTable() {
         final Cursor res = mDatabaseHelper.getData();
 
-        while (res.moveToNext())
-        {
+        while (res.moveToNext()) {
             TableRow tr = new TableRow(this);
 
             TextView tview1 = new TextView(this);
@@ -85,22 +78,14 @@ public class Lift_History extends AppCompatActivity {
             final String uriString = res.getString(3);
             final Uri uri = Uri.parse(uriString);
 
-            b1.setOnClickListener( new View.OnClickListener()
-                                   {
-                                       @Override
-                                       public void onClick(View view)
-                                       {
-//                                            Intent intent = new Intent();
-//                                            intent.setAction(Intent.ACTION_VIEW);
-//                                            intent.setDataAndType(uri, "image/*");
-//                                            startActivity(intent);
-                                           final Intent intent = new Intent(Lift_History.this,ImageReview.class);
-                                           intent.putExtra(ImageReview.EXTRA_PHOTO_URI, uri);
-//                                           intent.putExtra(ImageReview.EXTRA_PHOTO_DATA_PATH,
-//                                                   photoPath);
-                                           startActivity(intent);
-                                       }
-                                   }
+            b1.setOnClickListener(new View.OnClickListener() {
+                                      @Override
+                                      public void onClick(View view) {
+                                          final Intent intent = new Intent(Lift_History.this, ImageReview.class);
+                                          intent.putExtra(ImageReview.EXTRA_PHOTO_URI, uri);
+                                          startActivity(intent);
+                                      }
+                                  }
             );
 
             tr.addView(tview1);
@@ -112,12 +97,9 @@ public class Lift_History extends AppCompatActivity {
 
     }
 
-    public void saveCSV(View view)
-    {
+    public void saveCSV(View view) {
         String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
         final String appName = getString(R.string.app_name);
-
-
 
 
         Cursor res = mDatabaseHelper.getData();
@@ -127,30 +109,26 @@ public class Lift_History extends AppCompatActivity {
         } else {
             StringBuffer buffer = new StringBuffer();
             buffer.append("Index, Date, Deviation \n");
-            while (res.moveToNext())
-            {
+            while (res.moveToNext()) {
                 buffer.append(res.getString(0) + ",");
                 buffer.append(res.getString(1) + ",");
                 buffer.append(res.getString(2) + "\n");
-
 
 
             }
             //showMessage("Data", buffer.toString());
             final File path =
                     Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOCUMENTS );
+                            Environment.DIRECTORY_DOCUMENTS);
 
-            if(!path.exists())
-            {
+            if (!path.exists()) {
                 path.mkdirs();
             }
             String filename = "Lift_History" + date + ".csv";
-            final File file  = new File(path, filename);
+            final File file = new File(path, filename);
 
 
-            try
-            {
+            try {
                 file.createNewFile();
                 FileOutputStream fOut = new FileOutputStream(file);
                 OutputStreamWriter myOutWrite = new OutputStreamWriter(fOut);
@@ -162,10 +140,7 @@ public class Lift_History extends AppCompatActivity {
                 fOut.close();
 
                 toastMessage("Written To Documents Folder");
-            }
-
-            catch(IOException e)
-            {
+            } catch (IOException e) {
                 Log.e("Exception", "WriteFailed");
             }
 
